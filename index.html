@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>Sprawdź pogodę</title>
+</head>
+<body>
+  <h1>Sprawdź aktualną pogodę</h1>
+  <form action="/" method="get" id="weatherForm">
+    <label for="city">Wybierz miasto:</label>
+    <select id="city" name="city">
+      <option value="Warsaw">Warszawa</option>
+      <option value="Berlin">Berlin</option>
+      <option value="Paris">Paryż</option>
+    </select>
+
+    <button type="submit">Pokaż pogodę</button>
+  </form>
+
+  <div id="result"></div>
+  <script src="apka.js"></script>
+</body>
+</html>

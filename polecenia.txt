@@ -1,0 +1,5 @@
+Zbudowanie kontenera: docker build -t lab8 .
+Uruchomienie kontenera: docker run --rm -p 3000:3000 lab8
+Sposobu uzyskania informacji z logów, które wygenerowałą opracowana aplikacja podczas uruchamiana kontenera
+Warstwy: docker history
+Rozmiar: docker images
