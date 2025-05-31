@@ -1,1 +1,1 @@
-Repozytorium zawiera opracowane zadanie w postaci aplikacji pokazującej pogodę.
+Repozytorium zawiera opracowane zadanie w postaci aplikacji pokazującej pogodę z gha.

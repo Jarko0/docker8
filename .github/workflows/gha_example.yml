@@ -1,4 +1,4 @@
-name: zadanie2obowiazkowe  
+name: zadanie2obowiazkowe
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
 
 jobs:
   ci_step:
-    name: Build, tag and push Docker image to ghcr
+    name: Build, scan and push Docker image to ghcr
     runs-on: ubuntu-latest
       
     steps:
@@ -19,18 +19,18 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ vars.DOCKERHUB_USERNAME }}/example
+          images: jark0/lab8
           flavor: latest=false
           tags: |
             type=sha,priority=100,prefix=sha-,format=short
             type=semver,priority=200,pattern={{version}}   
 
       - 
-        name: QEMU set-up
+        name: QEMU set-up (for multiarch builds)
         uses: docker/setup-qemu-action@v3
 
       - 
-        name: Buildx set-up
+        name: Buildx set-up (buildx enables multi-platform builds)
         uses: docker/setup-buildx-action@v3
 
       - 
@@ -41,47 +41,48 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - 
-        name: Build and push Docker image
-        id: nazwa1
+        name: Build Docker image (no push yet)
+        id: build-image
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile
           platforms: linux/amd64,linux/arm64
-          push: false
+          push: false                      # Tylko budujemy, nie wypychamy
           cache-from: |
-            type=registry,ref=${{ vars.DOCKERHUB_USERNAME }}/example:cache 
+            type=registry,ref=jark0/lab8:cache
           cache-to: |
-            type=registry,ref=${{ vars.DOCKERHUB_USERNAME }}/example:cache  
-          tags: ${{ steps.meta.outputs.tags }}
-      
+            type=registry,ref=jark0/lab8:cache
+          tags: jark0/lab8:zadanie        # Tagujemy obraz lokalnie
+
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         id: scan
         with:
-          image-ref: ${{ steps.nazwa1.outputs.tags }}
+          image-ref: jark0/lab8:zadanie    # Skanujemy lokalny obraz po tagu
           ignore-unfixed: true
           format: 'json'
           output: 'trivy-results.json'
           severity: 'CRITICAL,HIGH'
 
-      - name: result
+      - name: Check scan results
         run: |
-         if jq '.Results[].Vulnerabilities | length == 0' trivy-report.json | grep -q false; then
+          # Sprawdzamy czy są podatności krytyczne lub wysokie
+          if jq '.Results[].Vulnerabilities | length == 0' trivy-results.json | grep -q false; then
             echo "Critical or high vulnerabilities detected."
             exit 1
           fi
-        
-      - name: push
+
+      - 
+        name: Push Docker image (only if scan passed)
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile
           platforms: linux/amd64,linux/arm64
-          push: true
+          push: true                      # Tutaj pushujemy obraz do DockerHub
           cache-from: |
-            type=registry,ref=${{ vars.DOCKERHUB_USERNAME }}/example:cache 
+            type=registry,ref=jark0/lab8:cache
           cache-to: |
-            type=registry,ref=${{ vars.DOCKERHUB_USERNAME }}/example:cache  
-          tags: ${{ steps.meta.outputs.tags }}
-    
+            type=registry,ref=jark0/lab8:cache
+          tags: jark0/lab8:zadanie
