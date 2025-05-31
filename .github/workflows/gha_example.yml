@@ -49,10 +49,8 @@ jobs:
           file: ./Dockerfile
           platforms: linux/amd64,linux/arm64    # Budujemy obrazy dla dwóch architektur
           push: false                           # Budujemy, ale nie wypychamy jeszcze obrazu
-          cache-from: |
-            type=registry,ref=jark0/lab8:cache # Używamy cache z repozytorium
-          cache-to: |
-            type=registry,ref=jark0/lab8:cache # Aktualizujemy cache po buildzie
+          cache-from: "type=registry,ref=jark0/lab8:cache" # Używamy cache z repozytorium
+          cache-to: "type=registry,ref=jark0/lab8:cache"   # Aktualizujemy cache po buildzie
           tags: jark0/lab8:zadanie              # Tagujemy obraz lokalnie pod nazwą 'zadanie'
 
       - name: Run Trivy vulnerability scanner
@@ -81,6 +79,6 @@ jobs:
           file: ./Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true                         # Wypychamy obraz do DockerHuba jeśli skan przeszedł
-          cache-from: type=registry,ref=jark0/lab8:cache
-          cache-to: type=registry,ref=jark0/lab8:cache
+          cache-from: "type=registry,ref=jark0/lab8:cache"  # Korzystamy z cache przy pushu
+          cache-to: "type=registry,ref=jark0/lab8:cache"    # Aktualizujemy cache
           tags: jark0/lab8:zadanie               # Tag do pushu
