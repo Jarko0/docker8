@@ -81,8 +81,6 @@ jobs:
           file: ./Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true                         # Wypychamy obraz do DockerHuba jeśli skan przeszedł
-          cache-from: |
-            type=registry,ref=jark0/lab8:cache  # Korzystamy z cache przy pushu
-          cache-to: |
-            type=registry,ref=jark0/lab8:cache  # Aktualizujemy cache
+          cache-from: type=registry,ref=jark0/lab8:cache
+          cache-to: type=registry,ref=jark0/lab8:cache
           tags: jark0/lab8:zadanie               # Tag do pushu
