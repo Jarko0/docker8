@@ -12,33 +12,33 @@ jobs:
     steps:
       - 
         name: Check out the source_repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4       # Pobieramy kod źródłowy repozytorium
       
       -
         name: Docker metadata definitions
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: jark0/lab8
-          flavor: latest=false
-          tags: |
+          images: jark0/lab8             # Nazwa repozytorium obrazu Docker
+          flavor: latest=false           # Wyłączamy automatyczny tag 'latest'
+          tags: |                       # Definiujemy dodatkowe tagi (sha, semver)
             type=sha,priority=100,prefix=sha-,format=short
             type=semver,priority=200,pattern={{version}}   
 
       - 
         name: QEMU set-up (for multiarch builds)
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v3   # Przygotowujemy środowisko QEMU do buildów wieloarchitektur
 
       - 
         name: Buildx set-up (buildx enables multi-platform builds)
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v3 # Konfigurujemy builder buildx dla multiarchitektury
 
       - 
         name: Login to DockerHub
         uses: docker/login-action@v3
         with:
-          username: ${{ vars.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          username: ${{ vars.DOCKERHUB_USERNAME }}   # Login do DockerHuba zdefiniowany w zmiennych repo
+          password: ${{ secrets.DOCKERHUB_TOKEN }}  # Token dostępu do DockerHuba w sekretach repo
 
       - 
         name: Build Docker image (no push yet)
@@ -47,30 +47,30 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
-          platforms: linux/amd64,linux/arm64
-          push: false                      # Tylko budujemy, nie wypychamy
+          platforms: linux/amd64,linux/arm64    # Budujemy obrazy dla dwóch architektur
+          push: false                           # Budujemy, ale nie wypychamy jeszcze obrazu
           cache-from: |
-            type=registry,ref=jark0/lab8:cache
+            type=registry,ref=jark0/lab8:cache # Używamy cache z repozytorium
           cache-to: |
-            type=registry,ref=jark0/lab8:cache
-          tags: jark0/lab8:zadanie        # Tagujemy obraz lokalnie
+            type=registry,ref=jark0/lab8:cache # Aktualizujemy cache po buildzie
+          tags: jark0/lab8:zadanie              # Tagujemy obraz lokalnie pod nazwą 'zadanie'
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         id: scan
         with:
-          image-ref: jark0/lab8:zadanie    # Skanujemy lokalny obraz po tagu
-          ignore-unfixed: true
-          format: 'json'
-          output: 'trivy-results.json'
-          severity: 'CRITICAL,HIGH'
+          image-ref: jark0/lab8:zadanie     # Skanujemy obraz lokalny pod tagiem 'zadanie'
+          ignore-unfixed: true               # Ignorujemy podatności niezałatane (unfixed)
+          format: 'json'                    # Wynik w formacie JSON
+          output: 'trivy-results.json'      # Zapis wyników do pliku
+          severity: 'CRITICAL,HIGH'         # Skupiamy się na krytycznych i wysokich podatnościach
 
       - name: Check scan results
         run: |
-          # Sprawdzamy czy są podatności krytyczne lub wysokie
+          # Sprawdzamy czy skan wykrył podatności krytyczne lub wysokie
           if jq '.Results[].Vulnerabilities | length == 0' trivy-results.json | grep -q false; then
             echo "Critical or high vulnerabilities detected."
-            exit 1
+            exit 1                         # Przerywamy działanie workflow, jeśli są krytyczne podatności
           fi
 
       - 
@@ -80,9 +80,9 @@ jobs:
           context: .
           file: ./Dockerfile
           platforms: linux/amd64,linux/arm64
-          push: true                      # Tutaj pushujemy obraz do DockerHub
+          push: true                         # Wypychamy obraz do DockerHuba jeśli skan przeszedł
           cache-from: |
-            type=registry,ref=jark0/lab8:cache
+            type=registry,ref=jark0/lab8:cache  # Korzystamy z cache przy pushu
           cache-to: |
-            type=registry,ref=jark0/lab8:cache
-          tags: jark0/lab8:zadanie
+            type=registry,ref=jark0/lab8:cache  # Aktualizujemy cache
+          tags: jark0/lab8:zadanie               # Tag do pushu
